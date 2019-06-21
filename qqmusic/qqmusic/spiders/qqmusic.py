@@ -16,7 +16,7 @@ class itemSpider(scrapy.Spider):
         "ITEM_PIPELINES": {
             "qqmusic.pipelines.JsonPipeline": 200,
             "qqmusic.pipelines.mysqlPipeline": 100,
-            "qqmusic.pipelines.imagePipeline": 300
+            "qqmusic.pipelines.imagePipeline": 300,
         },
         "FILES_STORE": "/Users/mac/Desktop/p/pyCode/imgs",  # 文件存储路径
         "IMAGES_STORE": "/Users/mac/Desktop/p/pyCode/imgs",  # 图片存储路径
@@ -32,6 +32,8 @@ class itemSpider(scrapy.Spider):
     }
 
     start_urls = ["https://music.163.com/discover/playlist"]
+    # 控制爬虫页面数量
+    count = 1
 
     def parse(self, response):
         LL = response.css("#m-pl-container li")
@@ -58,4 +60,8 @@ class itemSpider(scrapy.Spider):
             item["playNum"] = playNum
             item["author"] = author
             yield item
-
+        # 爬虫后两个页面
+        nextP = "https://music.163.com" + response.css(".zbtn::attr(href)").extract()[1]
+        if self.count < 2:
+            self.count += 1
+            yield scrapy.Request(nextP, callback=self.parse)

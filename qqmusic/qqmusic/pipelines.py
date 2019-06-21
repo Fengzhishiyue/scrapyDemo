@@ -77,18 +77,21 @@ class mysqlPipeline(object):
         return item
 
 
+# 存储图片
 class imagePipeline(ImagesPipeline):  # 继承ImagesPipeline这个类
-    # def get_media_requests(self, item, info):
-    #     for image_url in item["image_urls"]:
-    #         image_url = item['image_url']
-    #         yield scrapy.Request(image_url)
-
+    # 获取下载地址和文件名
     def get_media_requests(self, item, info):
         imgUrl = item["imgUrl"]
-        yield scrapy.Request(imgUrl)
+        yield scrapy.Request(imgUrl, meta={"name": item["title"]})
 
     def item_completed(self, results, item, info):
         image_paths = [x["path"] for ok, x in results if ok]
         if not image_paths:
             raise DropItem("Item contains no images")
         return item
+
+    # 设置文件名
+    def file_path(self, request, response=None, info=None):
+        name = request.meta["name"] + ".jpg"
+        down_file_name = u"full/{0}/{1}".format("网易云歌单", name)
+        return down_file_name
